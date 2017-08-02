@@ -55,8 +55,8 @@ repositories {
         maven { url 'http://artifactory.cern.ch/ds-jcenter' }
         maven { url 'http://artifactory.cern.ch/development' }
     } else {
-        mavenCentral()
         jcenter()
+        repositories { maven { url "http://dl.bintray.com/tensorics/tensorics-repo" } }
     }
 }
 
