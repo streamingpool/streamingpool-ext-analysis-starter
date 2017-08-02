@@ -1,0 +1,10 @@
+/bin/
+.classpath
+.project
+.settings
+*.log
+*.bin
+*.lock
+cache.*
+/build/
+.springBeans

@@ -1,0 +1,110 @@
+buildscript {
+    project.ext.CERN_VM = System.getProperty('CERN_TECHNET_VM') ?: System.getenv('CERN_TECHNET_VM') ?: false
+    project.ext.TRAVIS_CI = System.getProperty('TRAVIS') ?: System.getenv('TRAVIS') ?: false
+    project.ext.DEPLOYMENT = System.getProperty('deployment') ?: false
+    project.ext.VCS_TAG = System.getProperty('TRAVIS_TAG') ?: System.getenv('TRAVIS_TAG')
+    project.ext.POM = [
+        groupId   : 'org.streamingpool',
+        artifactId: 'streamingpool-ext-analysis-starter',
+        description: 'This is the starter for project streamingpool-ext-analysis.',
+        developers : [
+            [
+                id   : 'streamingpool-dev',
+                name : 'Streamingpool Developers',
+                email: 'streamingpool-dev@cern.ch'
+            ]]
+    ]
+    project.ext.INFO = [
+        repo: 'https://github.com/streamingpool/streamingpool-ext-analysis-starter.git',
+        url: 'http://www.streamingpool.org/',
+        github: 'https://github.com/streamingpool/streamingpool-ext-analysis-starter',
+        githubIssues: 'https://github.com/streamingpool/streamingpool-ext-analysis-starter/issues'
+    ]
+    project.ext.BINTRAY = [
+        repo: 'streamingpool-repos',
+        name: 'org.streamingpool:streamingpool-ext-analysis-starter',
+        organization: 'streamingpool',
+        userName: 'streamingpool-dev',
+        apiToken: System.getenv('BINTRAY_API_TOKEN')
+    ]
+    repositories {
+        if (CERN_VM) {
+            maven { url 'http://artifactory.cern.ch/gradle-plugins' }
+            maven { url 'http://artifactory.cern.ch/ds-jcenter' }
+            maven { url 'http://artifactory.cern.ch/development' }
+        } else {
+            mavenCentral()
+            jcenter()
+        }
+    }
+    dependencies {
+        classpath 'com.netflix.nebula:nebula-publishing-plugin:5.1.0'
+        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7.3'
+    }
+}
+
+apply plugin: 'java'
+apply plugin: 'jacoco'
+apply plugin: 'maven'
+apply plugin: 'maven-publish'
+apply plugin: 'nebula.maven-publish'
+apply plugin: 'com.jfrog.bintray'
+
+repositories {
+    if (CERN_VM) {
+        maven { url 'http://artifactory.cern.ch/ds-jcenter' }
+        maven { url 'http://artifactory.cern.ch/development' }
+    } else {
+        mavenCentral()
+        jcenter()
+    }
+}
+
+if (DEPLOYMENT) {
+    println 'Applying deployment scripts'
+    apply from: './scripts/bintray-deploy.gradle'
+}
+
+group 'org.streamingpool'
+
+sourceCompatibility = 1.8
+
+dependencies {
+    compile group: 'org.streamingpool', name: 'streamingpool-ext-analysis', version: '1.+'
+    compile group: 'org.streamingpool', name: 'streamingpool-core-starter', version: '0.+'
+    compile group: 'org.tensorics', name: 'tensorics-core-starter', version: '0.+'
+    compile (group: 'org.springframework.boot', name: 'spring-boot-starter', version: '1.5.4.RELEASE') { exclude module: "spring-boot-starter-logging" }
+    testCompile group: 'org.springframework.boot', name: 'spring-boot-starter-test', version: '1.5.4.RELEASE'
+}
+
+sourceSets {
+    main {
+        java { srcDir 'src/java' }
+        resources { srcDir 'src/resources' }
+    }
+}
+
+javadoc { options.encoding = "UTF-8" }
+
+task wrapper(type: Wrapper) { gradleVersion = '4.0' }
+
+task javadocJar(type: Jar) {
+    classifier = 'javadoc'
+    from javadoc
+}
+
+task sourcesJar(type: Jar) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+artifacts { archives javadocJar, sourcesJar }
+
+jacocoTestReport {
+    reports {
+        xml.enabled true
+        xml.destination new File("${buildDir}/reports/jacoco/report.xml")
+        html.enabled true
+        csv.enabled false
+    }
+}
