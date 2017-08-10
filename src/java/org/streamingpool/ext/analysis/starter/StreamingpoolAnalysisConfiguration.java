@@ -15,4 +15,5 @@ import org.streamingpool.ext.tensorics.conf.TensoricsStreamingConfiguration;
         TensoricsStreamingConfiguration.class })
 public class StreamingpoolAnalysisConfiguration {
     /* */
+   
 }
