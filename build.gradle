@@ -35,11 +35,13 @@ buildscript {
         } else {
             mavenCentral()
             jcenter()
+            maven { url 'https://plugins.gradle.org/m2/' }
         }
     }
     dependencies {
         classpath 'com.netflix.nebula:nebula-publishing-plugin:5.1.0'
         classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.4'
+        classpath 'com.github.jk1:gradle-license-report:1.5'
     }
 }
 
@@ -127,5 +129,15 @@ idea {
     module {
         downloadJavadoc = true
         downloadSources = true
+    }
+}
+
+if (!project['CERN_VM']) {
+    println 'Applying licensing report'
+    apply plugin: 'com.github.jk1.dependency-license-report'
+
+    licenseReport {
+        renderers = [this.class.classLoader.loadClass('com.github.jk1.license.render.InventoryHtmlReportRenderer').newInstance()]
+        filters = [this.class.classLoader.loadClass('com.github.jk1.license.filter.LicenseBundleNormalizer').newInstance()]
     }
 }
